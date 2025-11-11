@@ -23,4 +23,11 @@ app.use('/users', userRoutes);
 app.use('/invites', inviteRoutes);
 app.use('/items', itemRoutes);
 
+// Legacy /api/* aliases to support clients configured with an API prefix.
+app.use('/api/auth', authRoutes);
+app.use('/api/orgs', orgRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/invites', inviteRoutes);
+app.use('/api/items', itemRoutes);
+
 export default app;

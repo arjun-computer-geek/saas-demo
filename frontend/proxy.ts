@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const ACCESS_COOKIE =
-  process.env.NEXT_PUBLIC_ACCESS_TOKEN_COOKIE || "access_token";
-const REFRESH_COOKIE =
-  process.env.NEXT_PUBLIC_REFRESH_TOKEN_COOKIE || "refresh_token";
+const COOKIE_NAMES: string[] = [
+  process.env.NEXT_PUBLIC_ACCESS_TOKEN_COOKIE,
+  process.env.NEXT_PUBLIC_REFRESH_TOKEN_COOKIE,
+  process.env.NEXT_PUBLIC_SESSION_COOKIE,
+  "session",
+  "access_token",
+  "refresh_token",
+].filter((name): name is string => typeof name === "string" && name.length > 0);
+
+const hasAuthCookies = (req: NextRequest) =>
+  COOKIE_NAMES.some((name) => req.cookies.get(name)?.value);
 
 const PUBLIC_ROUTES = ["/login", "/invite"];
 const SUPER_ROUTES = ["/super"];
@@ -24,11 +31,7 @@ export function proxy(req: NextRequest) {
     path === "/" ||
     path.startsWith("/favicon.ico")
   ) {
-    const hasAuthCookie = Boolean(
-      req.cookies.get(ACCESS_COOKIE)?.value ||
-        req.cookies.get(REFRESH_COOKIE)?.value,
-    );
-    if (path.startsWith("/login") && hasAuthCookie) {
+    if (path.startsWith("/login") && hasAuthCookies(req)) {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
     return NextResponse.next();
@@ -36,16 +39,13 @@ export function proxy(req: NextRequest) {
 
   const protectedPaths = [...SUPER_ROUTES, ...ADMIN_ROUTES, ...USER_ROUTES];
   const needsAuth = protectedPaths.some((p) => path.startsWith(p));
-  const hasAuthCookie = Boolean(
-    req.cookies.get(ACCESS_COOKIE)?.value ||
-      req.cookies.get(REFRESH_COOKIE)?.value,
-  );
+  const authed = hasAuthCookies(req);
 
-  if (path.startsWith("/login") && hasAuthCookie) {
+  if (path.startsWith("/login") && authed) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
-  if (needsAuth && !hasAuthCookie) {
+  if (needsAuth && !authed) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 

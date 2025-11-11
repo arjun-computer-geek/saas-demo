@@ -1,22 +1,27 @@
 "use client";
-import { useState } from "react";
+import { FormEvent, Suspense, useState } from "react";
 import { api } from "@/lib/api";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function LoginPage() {
-  const [email, setEmail] = useState(""); 
+function LoginForm() {
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [orgId, setOrgId] = useState("");
   const [err, setErr] = useState("");
   const router = useRouter();
   const next = useSearchParams().get("next") || "/dashboard";
 
-  const submit = async (e: any) => {
+  const submit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      await api('/auth/login', { method:'POST', body: JSON.stringify({ email, password, orgId: orgId || undefined }) });
+      await api("/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email, password, orgId: orgId || undefined }),
+      });
       router.replace(next);
-    } catch (e:any) { setErr(e.message); }
+    } catch (error: any) {
+      setErr(error.message);
+    }
   };
 
   return (
@@ -30,5 +35,13 @@ export default function LoginPage() {
         <button className="btn">Login</button>
       </form>
     </section>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<section className="page center"><p>Loading...</p></section>}>
+      <LoginForm />
+    </Suspense>
   );
 }

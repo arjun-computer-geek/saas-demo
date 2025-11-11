@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 
@@ -43,7 +43,7 @@ function normalizeSectionId(value: string | null): SectionId {
   ) as SectionId;
 }
 
-export default function SuperControlCenterPage() {
+function SuperControlCenterContent() {
   const router = useRouter();
   const params = useSearchParams();
   const [activeSection, setActiveSection] = useState<SectionId>(
@@ -417,7 +417,7 @@ export default function SuperControlCenterPage() {
           </div>
 
           {loadingMembers ? (
-            <p className="muted">Loading members…</p>
+            <p className="muted">Loading members...</p>
           ) : selectedOrg ? (
             <ul className="list">
               {members.map((member) => (
@@ -492,9 +492,17 @@ function PasswordResetForm({
         required
       />
       <button className="btn" disabled={busy}>
-        {busy ? "Saving…" : "Update Password"}
+        {busy ? "Saving..." : "Update Password"}
       </button>
     </form>
+  );
+}
+
+export default function SuperControlCenterPage() {
+  return (
+    <Suspense fallback={<section className="page center"><p>Loading...</p></section>}>
+      <SuperControlCenterContent />
+    </Suspense>
   );
 }
 

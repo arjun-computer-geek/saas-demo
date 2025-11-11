@@ -4,7 +4,10 @@ const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
   poweredByHeader: false,
-   async rewrites() {
+  turbopack: {
+    root: __dirname,
+  },
+  async rewrites() {
     return [
       {
         source: "/api/:path*",

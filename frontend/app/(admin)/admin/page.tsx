@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { HintAdminOnly } from "@/components/RoleGates";
@@ -42,7 +42,7 @@ function normalizeSectionId(value: string | null): SectionId {
  *  - Invites: send and track invites, plus quick copy URL.
  *  - Overview: lightweight summary.
  */
-export default function AdminManagementPage() {
+function AdminManagementPageContent() {
   const router = useRouter();
   const params = useSearchParams();
   const initialSection = normalizeSectionId(params.get("tab"));
@@ -305,6 +305,14 @@ function OverviewCard({ title, value }: { title: string; value: number }) {
       <span className="muted">{title}</span>
       <strong style={{ fontSize: "1.75rem" }}>{value}</strong>
     </article>
+  );
+}
+
+export default function AdminManagementPage() {
+  return (
+    <Suspense fallback={<section className="page center"><p>Loading...</p></section>}>
+      <AdminManagementPageContent />
+    </Suspense>
   );
 }
 
